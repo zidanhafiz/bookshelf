@@ -1,10 +1,18 @@
+import { useState } from "react";
+import { useBooksFilter } from "../context/BooksFilter";
 import ModalAddBook from "./ModalAddBook";
+import ModalLoadingAdd from "./ModalLoadingAdd";
+import { useAuthentication } from "../context/Authentication";
 
 function AddBookBtn({ join }) {
+  const { user } = useAuthentication();
   return (
     <button
       className={`btn btn-sm btn-primary rounded-box ${join}`}
-      onClick={() => window.my_modal_1.showModal()}
+      onClick={() => {
+        if (user !== null) return window.my_modal_1.showModal();
+        else return alert("You must login first!");
+      }}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -20,8 +28,25 @@ function AddBookBtn({ join }) {
 }
 
 function FilterMenu() {
+  const context = useBooksFilter();
+  const [group, setGroup] = useState("All");
+  const list = [
+    {
+      name: "All",
+    },
+    {
+      name: "Finished",
+    },
+    {
+      name: "Unfinished",
+    },
+    {
+      name: "Watchlist",
+    },
+  ];
   return (
     <div className="flex flex-col sm:w-56 gap-5">
+      <ModalLoadingAdd />
       <ModalAddBook />
       <div className="join sm:hidden w-full">
         <AddBookBtn join={"join-item"} />
@@ -31,42 +56,50 @@ function FilterMenu() {
             tabIndex={10}
             className="dropdown-content z-[1] menu p-2 shadow bg-base-100 text-base-content rounded-box w-52"
           >
-            <li>
-              <a>All</a>
-            </li>
-            <li>
-              <a>Finished</a>
-            </li>
-            <li>
-              <a>Unfinished</a>
-            </li>
-            <li>
-              <a>Watchlist</a>
-            </li>
-            <li>
-              <a>Read Now</a>
-            </li>
+            {list.map((li) => {
+              return (
+                <li key={li.name}>
+                  <a
+                    onClick={() => {
+                      if (li.name == "All") {
+                        setGroup(li.name);
+                        return context.showAllBooks();
+                      }
+                      setGroup(li.name);
+                      return context.showBooks(li.name);
+                    }}
+                    className={context.group == li.name ? "active" : undefined}
+                  >
+                    {li.name}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </button>
       </div>
       <div className="hidden sm:flex flex-col gap-5 ">
         <AddBookBtn />
-        <ul className="menu bg-base-200 h-max rounded-box">
-          <li>
-            <a>All</a>
-          </li>
-          <li>
-            <a>Finished</a>
-          </li>
-          <li>
-            <a>Unfinished</a>
-          </li>
-          <li>
-            <a>Watchlist</a>
-          </li>
-          <li className="list-item md:hidden">
-            <a>Read Now</a>
-          </li>
+        <ul className="menu bg-slate-50 h-max rounded-box">
+          {list.map((li) => {
+            return (
+              <li key={li.name}>
+                <a
+                  onClick={() => {
+                    if (li.name == "All") {
+                      setGroup(li.name);
+                      return context.showAllBooks();
+                    }
+                    setGroup(li.name);
+                    return context.showBooks(li.name);
+                  }}
+                  className={context.group == li.name ? "active" : undefined}
+                >
+                  {li.name}
+                </a>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>

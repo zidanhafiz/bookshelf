@@ -2,6 +2,9 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
+    fontFamily: {
+      heading: ["Lobster Two", "cursive"],
+    },
     extend: {
       height: {
         108: "26rem",

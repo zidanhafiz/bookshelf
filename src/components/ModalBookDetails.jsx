@@ -1,9 +1,18 @@
 import { useBookDetails } from "../context/getBookDetails";
+import ModalEditBook from "./ModalEditBook";
+import { useEditBook } from "../context/EditBook";
+import ModalDeleteConfirm from "./ModalDeleteBook";
+import { useCapitalize } from "../context/Capitalize";
 
 function ModalBookDetails() {
   const context = useBookDetails();
+  const editContext = useEditBook();
+  const { capitalize } = useCapitalize();
+
   return (
     <div>
+      <ModalEditBook />
+      <ModalDeleteConfirm />
       <dialog id="my_modal_2" className="modal">
         <form method="dialog" className="modal-box bg-base-100">
           <h3 className="font-bold text-lg text-center">BOOK DETAILS</h3>
@@ -17,26 +26,50 @@ function ModalBookDetails() {
               <tbody>
                 <tr>
                   <td>Title</td>
-                  <td>: {context.book.title}</td>
+                  <td>:</td>
+                  <td>{context.title}</td>
                 </tr>
                 <tr>
                   <td>Author</td>
-                  <td>: {context.book.author}</td>
+                  <td>:</td>
+                  <td>{context.author}</td>
                 </tr>
                 <tr>
                   <td>Year Released</td>
-                  <td>: {context.book.yearReleased}</td>
+                  <td>:</td>
+                  <td>{context.book.yearReleased}</td>
                 </tr>
                 <tr>
                   <td>Total Pages</td>
-                  <td>: {context.book.totalPages}</td>
+                  <td>:</td>
+                  <td>{context.book.totalPages}</td>
                 </tr>
                 <tr>
                   <td>Status</td>
-                  <td>: {context.book.group}</td>
+                  <td>:</td>
+                  <td>{context.book.group}</td>
                 </tr>
               </tbody>
             </table>
+          </div>
+          <div className="mt-5 sm:text-start text-center">
+            <button
+              className="btn btn-sm btn-outline btn-error"
+              onClick={() => {
+                window.delete_modal.showModal();
+              }}
+            >
+              Delete
+            </button>
+            <button
+              className="btn btn-sm btn-outline ml-2"
+              onClick={() => {
+                window.edit_modal.showModal();
+                editContext.dispatch({ type: "init" });
+              }}
+            >
+              Edit
+            </button>
           </div>
           <div className="modal-action">
             <button className="btn btn-sm">Close</button>

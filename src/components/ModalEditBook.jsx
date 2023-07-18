@@ -1,81 +1,41 @@
-import {
-  addDoc,
-  collection,
-  serverTimestamp,
-} from "firebase/firestore";
-import { useReducer } from "react";
-import { useEditBook } from "../context/EditBook";
+import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "../firebase-config";
+import { useEditBook } from "../context/EditBook";
 import { useAuthentication } from "../context/Authentication";
+import { useBookDetails } from "../context/getBookDetails";
 
-const book = {
-  imgSrc: "",
-  title: "",
-  author: "",
-  yearReleased: "",
-  totalPages: "",
-  group: "Unfinished",
-};
-
-const reducer = (state, action) => {
-  switch (action.type) {
-    case "title":
-      return { ...state, title: action.payload };
-    case "imgSrc":
-      return { ...state, imgSrc: action.payload };
-    case "author":
-      return { ...state, author: action.payload };
-    case "yearReleased":
-      return { ...state, yearReleased: action.payload };
-    case "totalPages":
-      return { ...state, totalPages: action.payload };
-    case "group":
-      return { ...state, group: action.payload };
-    case "clear":
-      return { ...book };
-    default:
-      throw new Error("unexpected action");
-  }
-};
-
-function ModalAddBook() {
-  const [newBook, dispatch] = useReducer(reducer, book);
+function ModalEditBook() {
   const editContext = useEditBook();
   const { user } = useAuthentication();
+  const { book } = useBookDetails();
 
-  const addNewBook = async () => {
+  const updateBook = () => {
     editContext.setLoading(true);
-    window.modal_loading_add.showModal();
-    const colRef = collection(db, "users", user?.uid, "books");
-    await addDoc(colRef, {
-      imgSrc: newBook.imgSrc,
-      title: newBook.title.toLowerCase(),
-      author: newBook.author.toLowerCase(),
-      yearReleased: newBook.yearReleased,
-      totalPages: newBook.totalPages,
-      group: newBook.group,
+    window.modal_loading_edit.showModal();
+    const docRef = doc(db, "users", user?.uid, "books", book.id);
+    updateDoc(docRef, {
+      imgSrc: editContext.newBook.imgSrc,
+      title: editContext.newBook.title.toLowerCase(),
+      author: editContext.newBook.author.toLowerCase(),
+      yearReleased: editContext.newBook.yearReleased,
+      totalPages: editContext.newBook.totalPages,
+      group: editContext.newBook.group,
       createdAt: serverTimestamp(),
     })
       .then(() => {
         editContext.setLoading(false);
-        clearForm();
       })
-      .catch((err) => {
-        clearForm();
+      .catch((e) => {
         editContext.setLoading(false);
-        console.log("Error adding document", err);
+        console.log("Error adding document", e);
       });
-  };
-
-  const clearForm = () => {
-    dispatch({ type: "clear" });
   };
 
   return (
     <div>
-      <dialog id="my_modal_1" className="modal">
+      <dialog id="edit_modal" className="modal">
         <form method="dialog" className="modal-box bg-base-200">
-          <h3 className="font-bold text-lg text-center">ADD NEW BOOK</h3>
+          <h3 className="font-bold text-lg text-center">EDIT BOOK</h3>
           <div className="flex flex-col gap-3 mt-5 items-stretch">
             <label className="text-sm">Book's Image :</label>
             <input
@@ -83,9 +43,12 @@ function ModalAddBook() {
               className="input input-bordered input-sm w-full"
               placeholder="Image's url here"
               name="book-image"
-              value={newBook.imgSrc}
+              value={editContext.newBook.imgSrc}
               onChange={(e) => {
-                dispatch({ type: "imgSrc", payload: e.target.value });
+                editContext.dispatch({
+                  type: "imgSrc",
+                  payload: e.target.value,
+                });
               }}
             />
             <label className="text-sm">Title :</label>
@@ -94,9 +57,12 @@ function ModalAddBook() {
               placeholder="Type here"
               className="input input-bordered input-sm w-full"
               name="title"
-              value={newBook.title}
+              value={editContext.newBook.title}
               onChange={(e) => {
-                dispatch({ type: "title", payload: e.target.value });
+                editContext.dispatch({
+                  type: "title",
+                  payload: e.target.value,
+                });
               }}
             />
             <label className="text-sm">Author :</label>
@@ -105,9 +71,12 @@ function ModalAddBook() {
               placeholder="Type here"
               className="input input-bordered input-sm w-full "
               name="author"
-              value={newBook.author}
+              value={editContext.newBook.author}
               onChange={(e) => {
-                dispatch({ type: "author", payload: e.target.value });
+                editContext.dispatch({
+                  type: "author",
+                  payload: e.target.value,
+                });
               }}
             />
             <label className="text-sm">Year Released :</label>
@@ -116,9 +85,12 @@ function ModalAddBook() {
               placeholder="Type here"
               className="input input-bordered input-sm w-full "
               name="year-realeased"
-              value={newBook.yearReleased}
+              value={editContext.newBook.yearReleased}
               onChange={(e) => {
-                dispatch({ type: "yearReleased", payload: e.target.value });
+                editContext.dispatch({
+                  type: "yearReleased",
+                  payload: e.target.value,
+                });
               }}
             />
             <label className="text-sm">Total Pages :</label>
@@ -127,17 +99,23 @@ function ModalAddBook() {
               placeholder="Type here"
               className="input input-bordered input-sm w-full "
               name="total-pages"
-              value={newBook.totalPages}
+              value={editContext.newBook.totalPages}
               onChange={(e) => {
-                dispatch({ type: "totalPages", payload: e.target.value });
+                editContext.dispatch({
+                  type: "totalPages",
+                  payload: e.target.value,
+                });
               }}
             />
             <label className="text-sm">Group :</label>
             <select
               className="select select-bordered select-sm w-full"
-              value={newBook.group}
+              value={editContext.newBook.group}
               onChange={(e) => {
-                dispatch({ type: "group", payload: e.target.value });
+                editContext.dispatch({
+                  type: "group",
+                  payload: e.target.value,
+                });
               }}
             >
               <option>Finished</option>
@@ -146,9 +124,8 @@ function ModalAddBook() {
             </select>
           </div>
           <div className="modal-action">
-            {/* if there is a button in form, it will close the modal */}
             <button className="btn btn-sm">Cancel</button>
-            <button className="btn btn-sm btn-primary" onClick={addNewBook}>
+            <button className="btn btn-sm btn-primary" onClick={updateBook}>
               Submit
             </button>
           </div>
@@ -158,4 +135,4 @@ function ModalAddBook() {
   );
 }
 
-export default ModalAddBook;
+export default ModalEditBook;

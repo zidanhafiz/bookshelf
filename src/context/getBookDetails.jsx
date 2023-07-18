@@ -8,15 +8,16 @@ export const useBookDetails = () => {
 
 export const BookDetailsProvider = ({ children }) => {
   const [book, setBook] = useState({});
-
-  // const getBookDetails = (book) => {
-  //   setBook(book);
-  // };
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
 
   const BookDetailsValue = {
     book,
     setBook,
-    // getBookDetails,
+    title,
+    setTitle,
+    author,
+    setAuthor,
   };
 
   return (
